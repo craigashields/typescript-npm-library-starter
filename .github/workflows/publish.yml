@@ -1,0 +1,35 @@
+name: Publish
+on:
+  workflow_run:
+    workflows: [CI]
+    types:
+      - completed
+    branches:
+      - "REPLACE ME WITH master or your release branch name"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+      
+      - name: Install Dependencies
+        run: npm install --frozen-lockfile
+
+      - name: Lint Build and Test 
+        run: npm run lint && npm run build && npm run test
+
+      - name: Create Release Pull Request 
+        id: changesets
+        uses: changesets/action@v1
+        with: 
+            publish: npm run release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
